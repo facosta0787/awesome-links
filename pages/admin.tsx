@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useRouter } from 'next/router'
 import { useForm } from 'react-hook-form'
 import { gql, useMutation } from '@apollo/client'
 import toast, { Toaster } from 'react-hot-toast'
@@ -28,6 +29,7 @@ const CreateLinkMutation = gql`
 `
 
 const Admin = () => {
+  const router = useRouter()
   const [createLink, { data, loading, error }] = useMutation(CreateLinkMutation)
   const {
     register,
@@ -44,15 +46,11 @@ const Admin = () => {
     const res = await fetch(`/api/upload-image?file=${filename}`)
     const { fields, url } = await res.json()
 
-    console.log('*** data', JSON.stringify({ fields, url }, null, 2));
-
     const params = {
       ...fields,
       'Content-Type': file.type,
-      file
+      file,
     }
-
-    console.log('*** params', JSON.stringify(params, null, 2));
 
     const formData = new FormData()
     // @ts-ignore
@@ -80,7 +78,10 @@ const Admin = () => {
     try {
       toast.promise(createLink({ variables }), {
         loading: 'Creating new link..',
-        success: 'Link successfully created!🎉',
+        success: () => {
+          router.push('/')
+          return 'Link successfully created!🎉'
+        },
         error: `Something went wrong 😥 Please try again -  ${error}`,
       })
     } catch (error) {
@@ -144,7 +145,7 @@ const Admin = () => {
             {...register('image', { required: true })}
             onChange={uploadPhoto}
             type="file"
-            accept="image/png, image/jpeg"
+            accept="image/png, image/jpeg, image/jpg"
             name="image"
           />
         </label>

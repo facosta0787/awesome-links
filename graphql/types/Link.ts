@@ -1,19 +1,18 @@
-import { nonNull, objectType, stringArg, extendType } from 'nexus';
-import { connectionFromArraySlice, cursorToOffset } from 'graphql-relay';
+import { nonNull, objectType, stringArg, extendType } from 'nexus'
+import { connectionFromArraySlice, cursorToOffset } from 'graphql-relay'
 
 export const Link = objectType({
   name: 'Link',
   definition(t) {
-    t.string('id');
-    t.int('index');
-    t.int('userId');
-    t.string('title');
-    t.string('url');
-    t.string('description');
-    t.string('imageUrl');
-    t.string('category');
+    t.string('id')
+    t.int('userId')
+    t.string('title')
+    t.string('url')
+    t.string('description')
+    t.string('imageUrl')
+    t.string('category')
   },
-});
+})
 
 // get ALl Links
 export const LinksQuery = extendType({
@@ -22,26 +21,34 @@ export const LinksQuery = extendType({
     t.connectionField('links', {
       type: Link,
       resolve: async (_, { after, first }, ctx) => {
-        const offset = after ? cursorToOffset(after) + 1 : 0;
-        if (isNaN(offset)) throw new Error('cursor is invalid');
+        const offset = after ? cursorToOffset(after) + 1 : 0
+        if (after) {
+          console.log('*** cursorToOffset', cursorToOffset(after))
+        }
+        if (isNaN(offset)) throw new Error('cursor is invalid')
 
         const [totalCount, items] = await Promise.all([
           ctx.prisma.link.count(),
           ctx.prisma.link.findMany({
+            orderBy: [
+              {
+                createdAt: 'desc',
+              },
+            ],
             take: first,
             skip: offset,
           }),
-        ]);
+        ])
 
         return connectionFromArraySlice(
           items,
           { first, after },
           { sliceStart: offset, arrayLength: totalCount }
-        );
+        )
       },
-    });
+    })
   },
-});
+})
 // get Unique Link
 export const LinkByIDQuery = extendType({
   type: 'Query',
@@ -54,12 +61,12 @@ export const LinkByIDQuery = extendType({
           where: {
             id: args.id,
           },
-        });
-        return link;
+        })
+        return link
       },
-    });
+    })
   },
-});
+})
 
 // create link
 export const CreateLinkMutation = extendType({
@@ -79,9 +86,9 @@ export const CreateLinkMutation = extendType({
           where: {
             email: ctx.user.email,
           },
-        });
-         if (!user || user.role !== 'ADMIN') {
-          throw new Error(`You do not have permission to perform action`);
+        })
+        if (!user || user.role !== 'ADMIN') {
+          throw new Error(`You do not have permission to perform action`)
         }
         const newLink = {
           title: args.title,
@@ -89,15 +96,15 @@ export const CreateLinkMutation = extendType({
           imageUrl: args.imageUrl,
           category: args.category,
           description: args.description,
-        };
+        }
 
         return await ctx.prisma.link.create({
           data: newLink,
-        });
+        })
       },
-    });
+    })
   },
-});
+})
 
 // update Link
 export const UpdateLinkMutation = extendType({
@@ -123,11 +130,11 @@ export const UpdateLinkMutation = extendType({
             category: args.category,
             description: args.description,
           },
-        });
+        })
       },
-    });
+    })
   },
-});
+})
 // // delete Link
 export const DeleteLinkMutation = extendType({
   type: 'Mutation',
@@ -140,8 +147,8 @@ export const DeleteLinkMutation = extendType({
       resolve(_parent, args, ctx) {
         return ctx.prisma.link.delete({
           where: { id: args.id },
-        });
+        })
       },
-    });
+    })
   },
-});
+})

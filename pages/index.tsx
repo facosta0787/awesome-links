@@ -14,13 +14,12 @@ const AllLinksQuery = gql`
       edges {
         cursor
         node {
-          index
+          id
           imageUrl
           url
           title
           category
           description
-          id
         }
       }
     }
